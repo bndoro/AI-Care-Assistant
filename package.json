@@ -1,0 +1,12 @@
+{
+  "name": "ala-care",
+  "version": "0.1.0",
+  "description": "ALA – Autonomous Life Assistant. AI care platform for elderly independence.",
+  "private": true,
+  "scripts": {
+    "dev": "cd backend && npm run dev",
+    "start": "cd backend && npm start",
+    "install:all": "cd backend && npm install",
+    "deploy": "vercel --prod"
+  }
+}

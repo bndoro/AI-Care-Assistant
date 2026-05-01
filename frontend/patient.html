@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ALA — Margaret's Day</title>
+<style>
+  :root {
+    --bg: #FBF7F1;
+    --card: #FFFFFF;
+    --ink: #1F2933;
+    --ink-soft: #5A6573;
+    --sage: #6B8E7F;
+    --sage-deep: #4A6B5C;
+    --accent: #B85042;
+    --warn: #D97706;
+    --ok: #2E8B57;
+    --line: #E8E2D6;
+    --shadow: 0 4px 24px rgba(31, 41, 51, 0.06);
+    --radius: 18px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 18px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 120px; }
+  header.topbar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 28px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: 0.2px; }
+  .brand .dot {
+    width: 12px; height: 12px; border-radius: 50%; background: var(--sage);
+    box-shadow: 0 0 0 4px rgba(107, 142, 127, 0.15);
+  }
+  .brand small { color: var(--ink-soft); font-weight: 500; margin-left: 6px; font-size: 13px; }
+  .clock {
+    font-variant-numeric: tabular-nums;
+    background: var(--card); padding: 8px 14px; border-radius: 999px;
+    border: 1px solid var(--line); font-weight: 600; color: var(--ink-soft); font-size: 15px;
+  }
+  .hero {
+    background: linear-gradient(135deg, var(--sage-deep), var(--sage));
+    color: white; border-radius: 24px; padding: 32px 36px;
+    box-shadow: var(--shadow); position: relative; overflow: hidden;
+  }
+  .hero::after {
+    content: ""; position: absolute; right: -60px; top: -60px;
+    width: 220px; height: 220px; border-radius: 50%; background: rgba(255,255,255,0.06);
+  }
+  .hero h1 { margin: 0 0 6px; font-size: 30px; font-weight: 700; letter-spacing: -0.3px; }
+  .hero p { margin: 0; opacity: 0.92; font-size: 16px; }
+  .hero .summary { margin-top: 18px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .hero .stat { background: rgba(255,255,255,0.12); border-radius: 14px; padding: 12px 14px; backdrop-filter: blur(4px); }
+  .hero .stat .num { font-size: 24px; font-weight: 700; }
+  .hero .stat .lbl { font-size: 13px; opacity: 0.85; }
+  .voice-row { display: flex; gap: 14px; align-items: center; margin: 22px 0 10px; }
+  .voice-btn {
+    background: var(--ink); color: white; border: none; border-radius: 14px;
+    padding: 14px 22px; font-size: 16px; font-weight: 600; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 10px;
+    box-shadow: var(--shadow); transition: transform 0.15s, background 0.15s;
+  }
+  .voice-btn:hover { transform: translateY(-1px); background: #2D3748; }
+  .voice-btn.listening { background: var(--accent); animation: pulse 1.4s infinite; }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(184, 80, 66, 0.5); }
+    50% { box-shadow: 0 0 0 14px rgba(184, 80, 66, 0); }
+  }
+  .mic-icon { font-size: 18px; }
+  .transcript {
+    flex: 1; padding: 14px 18px; background: var(--card);
+    border: 1px dashed var(--line); border-radius: 14px;
+    color: var(--ink-soft); font-style: italic; min-height: 22px;
+  }
+  .grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 20px; margin-top: 18px; }
+  @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--card); border-radius: var(--radius); border: 1px solid var(--line);
+    padding: 22px 24px; box-shadow: var(--shadow);
+  }
+  .card h2 {
+    margin: 0 0 14px; font-size: 17px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px; color: var(--ink-soft);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card h2 .pip { width: 8px; height: 8px; border-radius: 50%; background: var(--sage); }
+  .item {
+    display: grid; grid-template-columns: 56px 1fr auto;
+    gap: 14px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line);
+  }
+  .item:last-child { border-bottom: none; }
+  .item .icon {
+    width: 48px; height: 48px; border-radius: 14px; background: #F5EFE6;
+    display: flex; align-items: center; justify-content: center; font-size: 22px;
+  }
+  .item .when { font-size: 13px; color: var(--ink-soft); font-weight: 500; margin-bottom: 2px; }
+  .item .what { font-size: 17px; font-weight: 600; }
+  .item .meta { font-size: 13px; color: var(--ink-soft); margin-top: 2px; }
+  .item .pill { padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; border: 1px solid var(--line); }
+  .pill.ok  { color: var(--ok);   border-color: rgba(46,139,87,0.3);  background: rgba(46,139,87,0.08); }
+  .pill.warn  { color: var(--warn); border-color: rgba(217,119,6,0.3);  background: rgba(217,119,6,0.08); }
+  .pill.alert { color: var(--accent); border-color: rgba(184,80,66,0.3); background: rgba(184,80,66,0.08); }
+  .btn { border: none; border-radius: 12px; padding: 10px 16px; font-weight: 600; font-size: 14px; cursor: pointer; transition: transform 0.1s, opacity 0.15s; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-primary { background: var(--sage); color: white; }
+  .btn-secondary { background: #F5EFE6; color: var(--ink); }
+  .wellness { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
+  .wellness .btn { font-size: 15px; padding: 12px 20px; }
+  .alerts-banner {
+    background: linear-gradient(90deg, rgba(184,80,66,0.08), rgba(184,80,66,0.02));
+    border: 1px solid rgba(184,80,66,0.25); border-radius: var(--radius);
+    padding: 14px 20px; margin-top: 18px; display: none; align-items: center; gap: 14px;
+  }
+  .alerts-banner.show { display: flex; }
+  .alerts-banner .iconbox {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: var(--accent); color: white;
+    display: flex; align-items: center; justify-content: center; font-weight: 700;
+  }
+  /* demo bar */
+  .demo-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: #1F2933; color: white; padding: 12px 20px;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    font-size: 13px; z-index: 50; box-shadow: 0 -8px 24px rgba(0,0,0,0.15);
+  }
+  .demo-bar .label { color: #A0AEC0; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-right: 6px; }
+  .demo-bar button {
+    background: rgba(255,255,255,0.08); color: white;
+    border: 1px solid rgba(255,255,255,0.12); padding: 7px 12px; border-radius: 8px; cursor: pointer; font-size: 13px;
+  }
+  .demo-bar button:hover { background: rgba(255,255,255,0.16); }
+  .demo-bar button.danger { background: rgba(184,80,66,0.6); border-color: rgba(184,80,66,0.8); }
+  .demo-bar a { color: #A0AEC0; text-decoration: none; margin-left: auto; font-weight: 600; }
+  .demo-bar a:hover { color: white; }
+  .toast {
+    position: fixed; bottom: 80px; right: 20px;
+    background: var(--ink); color: white; padding: 14px 20px; border-radius: 12px;
+    font-weight: 600; box-shadow: 0 12px 32px rgba(0,0,0,0.18);
+    transform: translateY(20px); opacity: 0; transition: all 0.3s;
+    pointer-events: none; z-index: 60; max-width: 320px;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .footer-note { text-align: center; color: var(--ink-soft); font-size: 13px; margin-top: 30px; }
+</style>
+</head>
+<body>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<!-- ALA config + sync layer -->
+<script src="firebase-config.js"></script>
+<script src="firebase-sync.js"></script>
+
+<div class="wrap">
+  <header class="topbar">
+    <div class="brand">
+      <span class="dot"></span>
+      <span>ALA</span>
+      <small>Autonomous Life Assistant</small>
+    </div>
+    <div class="clock" id="clock">--:--</div>
+  </header>
+
+  <section class="hero">
+    <h1 id="greeting">Good morning, Margaret</h1>
+    <p id="hero-sub">Here's a calm look at your day. I'm watching out for you.</p>
+    <div class="summary">
+      <div class="stat"><div class="num" id="stat-meds">2/3</div><div class="lbl">medications today</div></div>
+      <div class="stat"><div class="num" id="stat-events">2</div><div class="lbl">things on your calendar</div></div>
+      <div class="stat"><div class="num" id="stat-bills">1</div><div class="lbl">bill handled for you</div></div>
+    </div>
+  </section>
+
+  <div class="voice-row">
+    <button class="voice-btn" id="voice-btn">
+      <span class="mic-icon">🎙</span>
+      <span id="voice-label">Tap to speak</span>
+    </button>
+    <div class="transcript" id="transcript">Try: "What's my day?", "I took my pill", or "Call Daniel"</div>
+  </div>
+
+  <div class="alerts-banner" id="alerts-banner">
+    <div class="iconbox">!</div>
+    <div>
+      <strong id="alert-title">Heads up</strong>
+      <div id="alert-msg" style="color: var(--ink-soft); font-size: 14px;"></div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2><span class="pip"></span>Today's plan</h2>
+      <div id="schedule-list"></div>
+    </div>
+    <div class="card">
+      <h2><span class="pip"></span>Pills</h2>
+      <div id="meds-list"></div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2><span class="pip"></span>Bills & money</h2>
+      <div id="bills-list"></div>
+      <div style="margin-top: 14px; padding: 12px 14px; background: #F5EFE6; border-radius: 10px; font-size: 14px; color: var(--ink-soft);">
+        <strong style="color: var(--ink);">Watching for fraud.</strong>
+        A $312 charge from <em>"GoldShield Warranty"</em> looked unusual. I held it for your review.
+      </div>
+    </div>
+    <div class="card">
+      <h2><span class="pip"></span>How are you feeling?</h2>
+      <p style="color: var(--ink-soft); margin: 0 0 8px;">Quick wellness check. I ask once a day.</p>
+      <div class="wellness">
+        <button class="btn btn-primary"   onclick="wellness('great')">😊 Great</button>
+        <button class="btn btn-secondary" onclick="wellness('ok')">🙂 Okay</button>
+        <button class="btn btn-secondary" onclick="wellness('low')">😟 Not great</button>
+      </div>
+      <div id="wellness-state" style="margin-top: 12px; font-size: 14px; color: var(--ink-soft);"></div>
+    </div>
+  </div>
+
+  <p class="footer-note">ALA · privacy-first by design · escalation only when you need it</p>
+</div>
+
+<!-- Demo controls -->
+<div class="demo-bar">
+  <span class="label">Demo controls</span>
+  <button onclick="demo.skipPill()">Skip 9 AM pill</button>
+  <button onclick="demo.advance10()">+10 min</button>
+  <button onclick="demo.advance30()">+30 min</button>
+  <button onclick="demo.fraudPing()">Fraud alert</button>
+  <button onclick="demo.inactive()">Trigger inactivity</button>
+  <button class="danger" onclick="demo.reset()">Reset</button>
+  <a href="caregiver.html" target="_blank">Open caregiver dashboard ↗</a>
+</div>
+
+<div class="toast" id="toast">Saved.</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   ALA Patient UI — v2 (Firebase + pluggable AI backend)
+   State is now synced via firebase-sync.js (Firebase Realtime DB).
+   Voice responses come from the backend /api/voice endpoint.
+═══════════════════════════════════════════════════════════════ */
+
+/* ---------- simulated time ---------- */
+function nowSim() {
+  const s = loadState();
+  return new Date(Date.now() + ((s && s.demoOffsetMin) || 0) * 60 * 1000);
+}
+function fmtClock(d) {
+  const h = d.getHours(), m = d.getMinutes(), ampm = h >= 12 ? 'PM' : 'AM';
+  return ((h + 11) % 12 + 1) + ':' + String(m).padStart(2, '0') + ' ' + ampm;
+}
+function timeToMinutes(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
+function minutesNowSim() { const d = nowSim(); return d.getHours() * 60 + d.getMinutes(); }
+
+/* ---------- render ---------- */
+function render(s) {
+  if (!s) s = loadState();
+  if (!s) return;
+
+  document.getElementById('clock').textContent = fmtClock(nowSim());
+  const hour = nowSim().getHours();
+  const greet = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('greeting').textContent = greet + ', ' + s.patient.name.split(' ')[0];
+
+  const takenCount = s.meds.filter(m => m.status === 'taken').length;
+  document.getElementById('stat-meds').textContent = takenCount + '/' + s.meds.length;
+  document.getElementById('stat-events').textContent = s.schedule.length;
+  document.getElementById('stat-bills').textContent = s.bills.filter(b => b.status === 'paid' || b.status === 'scheduled').length;
+
+  // schedule
+  const sched = document.getElementById('schedule-list');
+  sched.innerHTML = '';
+  s.schedule.forEach(ev => {
+    const icons = { appt: '🩺', social: '📞', errand: '🛒' };
+    const row = document.createElement('div');
+    row.className = 'item';
+    row.innerHTML = `
+      <div class="icon">${icons[ev.type] || '📍'}</div>
+      <div>
+        <div class="when">${ev.time}</div>
+        <div class="what">${ev.title}</div>
+        <div class="meta">${ev.meta || ''}</div>
+      </div>
+      <span class="pill ${ev.status === 'done' ? 'ok' : ''}">${ev.status === 'done' ? 'Done' : 'Upcoming'}</span>
+    `;
+    sched.appendChild(row);
+  });
+
+  // meds
+  const medsEl = document.getElementById('meds-list');
+  medsEl.innerHTML = '';
+  s.meds.forEach(m => {
+    const cls = m.status === 'taken' ? 'ok' : m.status === 'missed' ? 'alert' : (m.remindersSent > 0 ? 'warn' : '');
+    const label = m.status === 'taken' ? 'Taken ✓' : m.status === 'missed' ? 'Missed' : 'Pending';
+    const row = document.createElement('div');
+    row.className = 'item';
+    row.innerHTML = `
+      <div class="icon">💊</div>
+      <div>
+        <div class="when">${m.time}</div>
+        <div class="what">${m.name}</div>
+        <div class="meta">${m.dose}</div>
+      </div>
+      ${m.status === 'pending' || m.status === 'missed'
+        ? `<button class="btn btn-primary" onclick="confirmTaken('${m.id}')">I took it</button>`
+        : `<span class="pill ${cls}">${label}</span>`}
+    `;
+    medsEl.appendChild(row);
+  });
+
+  // bills
+  const bl = document.getElementById('bills-list');
+  bl.innerHTML = '';
+  s.bills.forEach(b => {
+    const cls = b.status === 'paid' ? 'ok' : b.status === 'scheduled' ? 'warn' : 'alert';
+    const lbl = b.status === 'paid' ? 'Paid' : b.status === 'scheduled' ? 'Scheduled' : 'Action needed';
+    const row = document.createElement('div');
+    row.className = 'item';
+    row.innerHTML = `
+      <div class="icon">🧾</div>
+      <div>
+        <div class="when">Due today</div>
+        <div class="what">${b.name}</div>
+        <div class="meta">$${b.amount.toFixed(2)}</div>
+      </div>
+      <span class="pill ${cls}">${lbl}</span>
+    `;
+    bl.appendChild(row);
+  });
+
+  // wellness
+  const w = s.wellness;
+  const ws = document.getElementById('wellness-state');
+  if (w) {
+    const map = { great: 'Logged: feeling great today 🌿', ok: 'Logged: feeling okay.', low: 'Logged: not great. I let Daniel know quietly.' };
+    ws.textContent = map[w] || '';
+  } else { ws.textContent = ''; }
+}
+
+/* ---------- actions ---------- */
+function confirmTaken(id) {
+  const s = loadState();
+  const m = s.meds.find(x => x.id === id);
+  if (!m) return;
+  m.status = 'taken';
+  saveState(s);
+  logActivity(`Confirmed: ${m.name} ${m.dose} taken.`, 'med');
+  toast(`${m.name} taken. Nice work, Margaret.`);
+  hideBanner();
+  render(s);
+}
+
+function wellness(v) {
+  const s = loadState();
+  s.wellness = v;
+  saveState(s);
+  logActivity(`Wellness check-in: ${v}`, 'wellness');
+  if (v === 'low') {
+    addAlert('warn', 'Margaret reported feeling not great today.', 'wellness');
+    toast("Logged. Daniel will get a quiet check-in note.");
+  } else {
+    toast(v === 'great' ? "Glad to hear it." : "Got it.");
+  }
+  render(s);
+}
+
+/* ---------- banner / toast ---------- */
+function showBanner(level, msg) {
+  const b = document.getElementById('alerts-banner');
+  document.getElementById('alert-title').textContent =
+    level === 'critical' ? 'Caregiver notified' : level === 'warn' ? 'Quick check' : 'Heads up';
+  document.getElementById('alert-msg').textContent = msg;
+  b.classList.add('show');
+}
+function hideBanner() { document.getElementById('alerts-banner').classList.remove('show'); }
+let toastTimer;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+/* ---------- escalation engine ---------- */
+function escalationTick() {
+  const s = loadState();
+  if (!s) return;
+  const now = minutesNowSim();
+  let changed = false;
+  s.meds.forEach(m => {
+    if (m.status !== 'pending') return;
+    const due = timeToMinutes(m.time);
+    const lag = now - due;
+    if (lag >= 0 && lag < 15 && m.remindersSent < 1) {
+      m.remindersSent = 1; changed = true;
+      showBanner('info', `Time for your ${m.name}. Tap "I took it" when you do.`);
+      logActivity(`Reminder sent for ${m.name}.`, 'reminder');
+    } else if (lag >= 15 && lag < 30 && m.remindersSent < 2) {
+      m.remindersSent = 2; changed = true;
+      addAlert('warn', `${s.patient.name} hasn't confirmed ${m.name} (${m.dose}) — 15 min late.`, 'medication');
+    } else if (lag >= 30 && m.status === 'pending') {
+      m.status = 'missed'; changed = true;
+      addAlert('critical', `${s.patient.name} missed ${m.name} (${m.dose}). Daniel notified at 555-0142.`, 'medication');
+      logActivity(`Escalation: ${m.name} marked missed. Caregiver notified.`, 'escalation');
+    }
+  });
+  if (changed) { saveState(s); render(s); }
+}
+
+/* ---------- demo controls ---------- */
+const demo = {
+  skipPill() {
+    const s = loadState();
+    const m = s.meds.find(x => x.id === 'm1');
+    if (m) { m.remindersSent = 0; m.status = 'pending'; }
+    const target = new Date(); target.setHours(9, 1, 0, 0);
+    s.demoOffsetMin = Math.round((target - new Date()) / 60000);
+    saveState(s); toast("Time set to 9:01 AM. Reminder will fire."); render(s);
+    setTimeout(escalationTick, 200);
+  },
+  advance10() {
+    const s = loadState(); s.demoOffsetMin = (s.demoOffsetMin || 0) + 10;
+    saveState(s); toast("+10 min"); render(s); setTimeout(escalationTick, 200);
+  },
+  advance30() {
+    const s = loadState(); s.demoOffsetMin = (s.demoOffsetMin || 0) + 30;
+    saveState(s); toast("+30 min"); render(s); setTimeout(escalationTick, 200);
+  },
+  fraudPing() {
+    addAlert('warn', 'Held a $312 charge from "GoldShield Warranty" — looks like a scam.', 'fraud');
+    logActivity('Fraud filter held suspicious transaction.', 'fraud');
+    toast("Fraud alert sent to caregiver dashboard.");
+  },
+  inactive() {
+    addAlert('warn', 'No movement detected for 90 minutes — running a wellness check.', 'inactivity');
+    logActivity('Inactivity detected — wellness check triggered.', 'inactivity');
+    toast("Inactivity event sent.");
+  },
+  reset() {
+    if (typeof _stateRef !== 'undefined' && _stateRef) {
+      _stateRef.remove().then(() => { toast("Reset."); });
+    } else {
+      localStorage.removeItem('ALA_STATE_v1');
+      toast("Reset.");
+    }
+    setTimeout(() => location.reload(), 400);
+  }
+};
+
+/* ---------- voice (Web Speech API + backend AI) ---------- */
+const voiceBtn = document.getElementById('voice-btn');
+const voiceLabel = document.getElementById('voice-label');
+const transcriptEl = document.getElementById('transcript');
+let recog = null;
+const synth = window.speechSynthesis;
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if (SR) {
+  recog = new SR();
+  recog.continuous = false;
+  recog.interimResults = false;
+  recog.lang = 'en-US';
+  recog.onresult = (e) => {
+    const t = e.results[0][0].transcript;
+    transcriptEl.textContent = '"' + t + '"';
+    handleVoice(t);
+  };
+  recog.onend = () => {
+    voiceBtn.classList.remove('listening');
+    voiceLabel.textContent = 'Tap to speak';
+  };
+  recog.onerror = () => {
+    voiceBtn.classList.remove('listening');
+    voiceLabel.textContent = 'Tap to speak';
+    transcriptEl.textContent = "I didn't catch that. Try again?";
+  };
+} else {
+  transcriptEl.textContent = "Voice unavailable in this browser — use the buttons.";
+}
+
+voiceBtn.addEventListener('click', () => {
+  if (!recog) {
+    const t = prompt('Say something to ALA:');
+    if (t) { transcriptEl.textContent = '"' + t + '"'; handleVoice(t); }
+    return;
+  }
+  if (voiceBtn.classList.contains('listening')) {
+    recog.stop();
+  } else {
+    voiceBtn.classList.add('listening');
+    voiceLabel.textContent = 'Listening…';
+    transcriptEl.textContent = '...';
+    try { recog.start(); } catch (e) {}
+  }
+});
+
+function speak(text) {
+  if (!synth) return;
+  const u = new SpeechSynthesisUtterance(text);
+  u.rate = 0.95; u.pitch = 1.0;
+  synth.cancel();
+  synth.speak(u);
+}
+
+async function handleVoice(raw) {
+  const s = loadState();
+  let reply = "I'm here with you. Could you say that again?";
+  let action = null;
+
+  try {
+    // Call the backend AI — falls back to mock if server is offline
+    const res = await fetch(`${API_BASE_URL}/api/voice`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: raw, state: s }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      reply = data.reply || reply;
+      action = data.action;
+    }
+  } catch (err) {
+    // Server offline — graceful local fallback
+    console.warn('[ALA] Backend offline, using local fallback.');
+    reply = localVoiceFallback(raw, s);
+  }
+
+  transcriptEl.textContent = `"${raw}"  →  ${reply}`;
+  speak(reply);
+
+  // Side-effects from AI intent detection
+  if (action === 'triggerEmergency') {
+    addAlert('critical', 'Margaret asked for help by voice — please check in immediately.', 'voice');
+    logActivity('Voice emergency triggered.', 'emergency');
+  } else if (action === 'markMedTaken') {
+    const next = s && s.meds.find(m => m.status === 'pending');
+    if (next) confirmTaken(next.id);
+  } else if (action === 'callFamily') {
+    logActivity('Patient requested to call family. Outgoing call initiated.', 'call');
+  }
+}
+
+function localVoiceFallback(raw, s) {
+  const t = (raw || '').toLowerCase();
+  const name = s && s.patient ? s.patient.name.split(' ')[0] : 'there';
+  if (/(what.*day|schedule|today|plan)/.test(t)) {
+    const pending = s.meds.filter(m => m.status !== 'taken').length;
+    return `You have ${pending} medications left today, ${name}. Your next event is ${s.schedule[0]?.title || 'nothing'} at ${s.schedule[0]?.time || '--'}.`;
+  }
+  if (/took.*(pill|med)|i took/.test(t)) return `I'll mark that as taken. Well done, ${name}!`;
+  if (/(help|emergency|hurt|fall)/.test(t)) return `I'm alerting your family right now, ${name}. Stay calm — help is coming.`;
+  if (/(call|son|daughter|family|daniel)/.test(t)) return `I'll let Daniel know you'd like to chat.`;
+  return `I'm here with you, ${name}. You can ask me about your day, your pills, your bills, or say "help" if you need me.`;
+}
+
+/* ---------- subscribe to Firebase live updates ---------- */
+onStateChange((newState) => render(newState));
+
+/* ---------- boot ---------- */
+// Wait for firebase-sync.js to bootstrap, then render
+setTimeout(() => render(), 500);
+
+setInterval(() => {
+  document.getElementById('clock').textContent = fmtClock(nowSim());
+}, 1000);
+
+setInterval(escalationTick, 15000);
+setTimeout(escalationTick, 800);
+</script>
+</body>
+</html>

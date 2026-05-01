@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ALA — Caregiver Dashboard · Margaret Johnson</title>
+<style>
+  :root {
+    --bg: #0E1722;
+    --panel: #16212F;
+    --panel-2: #1C2A3B;
+    --line: #2A3A50;
+    --ink: #E6EDF7;
+    --ink-soft: #95A4BB;
+    --accent: #5EEAD4;
+    --accent-2: #38BDF8;
+    --warn: #F59E0B;
+    --danger: #EF4444;
+    --ok: #10B981;
+    --shadow: 0 8px 32px rgba(0,0,0,0.35);
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+    background: var(--bg);
+    background-image:
+      radial-gradient(at 0% 0%, rgba(56,189,248,0.06), transparent 40%),
+      radial-gradient(at 100% 0%, rgba(94,234,212,0.05), transparent 35%);
+    color: var(--ink);
+    min-height: 100vh;
+    font-size: 14px;
+  }
+  header.top {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 18px 28px; border-bottom: 1px solid var(--line);
+    background: rgba(14,23,34,0.85); backdrop-filter: blur(8px);
+    position: sticky; top: 0; z-index: 30;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: 0.4px; }
+  .brand .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px rgba(94,234,212,0.18); }
+  .brand small { color: var(--ink-soft); font-weight: 500; font-size: 12px; margin-left: 6px; }
+  .top-right { display: flex; gap: 14px; align-items: center; color: var(--ink-soft); font-size: 13px; }
+  .live {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 5px 11px; background: rgba(94,234,212,0.1); color: var(--accent);
+    border: 1px solid rgba(94,234,212,0.3); border-radius: 999px;
+    font-weight: 600; font-size: 12px;
+  }
+  .live::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
+    box-shadow: 0 0 0 4px rgba(94,234,212,0.25); animation: blink 1.6s infinite;
+  }
+  @keyframes blink { 50% { opacity: 0.4; } }
+  .layout { padding: 24px 28px 60px; max-width: 1400px; margin: 0 auto; display: grid; gap: 20px; }
+  .hero { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 14px; }
+  @media (max-width: 1000px) { .hero { grid-template-columns: 1fr 1fr; } }
+  .panel {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow);
+  }
+  .panel h3 {
+    margin: 0 0 14px; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1.4px; color: var(--ink-soft);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .panel h3 .badge {
+    font-size: 10px; padding: 3px 8px; border-radius: 999px;
+    background: rgba(94,234,212,0.12); color: var(--accent);
+    text-transform: none; letter-spacing: 0;
+  }
+  .patient-info { display: flex; align-items: center; gap: 18px; }
+  .avatar {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: linear-gradient(135deg, #5EEAD4, #38BDF8);
+    color: #06212B; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 24px; flex-shrink: 0;
+  }
+  .patient-info .name { font-size: 22px; font-weight: 700; }
+  .patient-info .meta { color: var(--ink-soft); font-size: 13px; margin-top: 3px; }
+  .status-row { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 600;
+    background: rgba(94,234,212,0.1); color: var(--accent); border: 1px solid rgba(94,234,212,0.25);
+  }
+  .chip.warn { background: rgba(245,158,11,0.12); color: var(--warn); border-color: rgba(245,158,11,0.3); }
+  .chip.danger { background: rgba(239,68,68,0.12); color: var(--danger); border-color: rgba(239,68,68,0.3); }
+  .chip.muted { background: rgba(149,164,187,0.1); color: var(--ink-soft); border-color: rgba(149,164,187,0.25); }
+  .stat-big { font-size: 38px; font-weight: 700; letter-spacing: -1px; line-height: 1; }
+  .stat-sub { color: var(--ink-soft); font-size: 12px; margin-top: 6px; }
+  .main { display: grid; grid-template-columns: 1.3fr 1fr; gap: 20px; }
+  @media (max-width: 1000px) { .main { grid-template-columns: 1fr; } }
+  .alert-row {
+    display: grid; grid-template-columns: 8px 36px 1fr auto;
+    gap: 12px; align-items: flex-start; padding: 12px 14px;
+    border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px;
+    background: var(--panel-2); transition: border-color 0.2s;
+  }
+  .alert-row:hover { border-color: var(--accent); }
+  .alert-row .stripe { width: 4px; align-self: stretch; border-radius: 2px; background: var(--ink-soft); }
+  .alert-row.critical .stripe { background: var(--danger); }
+  .alert-row.warn .stripe { background: var(--warn); }
+  .alert-row.info .stripe { background: var(--accent-2); }
+  .alert-row .ico { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.04); font-size: 16px; }
+  .alert-row .body .src { font-size: 11px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 1px; }
+  .alert-row .body .msg { font-weight: 500; margin-top: 3px; line-height: 1.45; }
+  .alert-row .body .when { color: var(--ink-soft); font-size: 12px; margin-top: 4px; }
+  .alert-row .actions { display: flex; flex-direction: column; gap: 6px; }
+  .btn {
+    border: 1px solid var(--line); background: transparent; color: var(--ink);
+    padding: 6px 10px; border-radius: 8px; font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .btn:hover { background: rgba(255,255,255,0.05); border-color: var(--accent); }
+  .btn.solid { background: var(--accent); color: #06212B; border-color: var(--accent); }
+  .btn.solid:hover { background: #6FF0D9; }
+  .btn.ghost-danger { color: var(--danger); border-color: rgba(239,68,68,0.3); }
+  .empty { text-align: center; padding: 30px 20px; color: var(--ink-soft); font-style: italic; border: 1px dashed var(--line); border-radius: 10px; }
+  .bars { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; align-items: end; height: 110px; padding: 4px 2px; }
+  .bar-col { display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; }
+  .bar { width: 100%; background: linear-gradient(180deg, var(--accent), var(--accent-2)); border-radius: 6px 6px 2px 2px; min-height: 6px; }
+  .bar.miss { background: linear-gradient(180deg, var(--warn), #C26B0E); }
+  .bar.fail { background: linear-gradient(180deg, var(--danger), #B22F2F); }
+  .bar-label { font-size: 11px; color: var(--ink-soft); }
+  .timeline { position: relative; padding-left: 18px; }
+  .timeline::before { content: ""; position: absolute; left: 6px; top: 6px; bottom: 6px; width: 2px; background: var(--line); }
+  .tl-item { position: relative; padding: 8px 0 12px; }
+  .tl-item::before { content: ""; position: absolute; left: -16px; top: 14px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-2); box-shadow: 0 0 0 3px var(--panel); }
+  .tl-item .when { font-size: 11px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 1px; }
+  .tl-item .what { font-size: 14px; margin-top: 2px; }
+  .sched-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .sched-item:last-child { border-bottom: none; }
+  .sched-item .title { font-weight: 600; }
+  .sched-item .meta { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+  .sched-item .time { font-variant-numeric: tabular-nums; color: var(--accent); font-weight: 700; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+  .quick-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 12px; }
+  .quick-actions .btn { padding: 10px; font-size: 13px; }
+  footer { text-align: center; color: var(--ink-soft); font-size: 12px; padding: 30px; border-top: 1px solid var(--line); margin-top: 24px; }
+  footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<!-- ALA config + sync layer -->
+<script src="firebase-config.js"></script>
+<script src="firebase-sync.js"></script>
+
+<header class="top">
+  <div class="brand">
+    <span class="dot"></span>
+    <span>ALA · Caregiver Console</span>
+    <small>v0.2 hackathon build</small>
+  </div>
+  <div class="top-right">
+    <span class="live">LIVE</span>
+    <span id="clock">--:--</span>
+    <span>·</span>
+    <span>Daniel Johnson (son)</span>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- HERO STATUS -->
+  <section class="hero">
+    <div class="panel patient-info">
+      <div class="avatar" id="avatar">MJ</div>
+      <div style="flex:1;">
+        <div class="name" id="patient-name">Margaret Johnson</div>
+        <div class="meta" id="patient-meta">72 · 123 Maple Ave · solo · last activity <span id="last-act">just now</span></div>
+        <div class="status-row" id="status-row">
+          <span class="chip" id="status-chip">All quiet</span>
+          <span class="chip muted" id="adherence-chip">7-day adherence —</span>
+          <span class="chip muted">Wellness: <span id="wellness-chip">—</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>Today's adherence</h3>
+      <div class="stat-big" id="today-adherence">—</div>
+      <div class="stat-sub" id="today-adherence-sub">— of — pills confirmed</div>
+    </div>
+    <div class="panel">
+      <h3>Open alerts</h3>
+      <div class="stat-big" id="open-alerts" style="color: var(--warn);">0</div>
+      <div class="stat-sub">requires attention</div>
+    </div>
+    <div class="panel">
+      <h3>Bills handled</h3>
+      <div class="stat-big" id="bills-handled" style="color: var(--accent);">0</div>
+      <div class="stat-sub" id="bills-sub">automated today</div>
+    </div>
+  </section>
+
+  <!-- MAIN CONTENT -->
+  <section class="main">
+    <div class="panel">
+      <h3>Live alert feed <span class="badge" id="badge-feed">0 open</span></h3>
+      <div id="alerts-feed"></div>
+    </div>
+    <div>
+      <div class="panel" style="margin-bottom: 20px;">
+        <h3>Today's schedule</h3>
+        <div id="schedule-feed"></div>
+      </div>
+      <div class="panel">
+        <h3>Quick actions</h3>
+        <div class="quick-actions">
+          <button class="btn solid" onclick="quick.callMargaret()">📞 Call Margaret</button>
+          <button class="btn" onclick="quick.acknowledgeAll()">✓ Acknowledge all</button>
+          <button class="btn" onclick="quick.scheduleRide()">🚗 Schedule ride</button>
+          <button class="btn ghost-danger" onclick="quick.escalate911()">🚨 Emergency 911</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CHARTS + TIMELINE -->
+  <section class="grid-2">
+    <div class="panel">
+      <h3>Medication adherence — last 7 days</h3>
+      <div class="bars" id="bars"></div>
+      <div style="display: grid; grid-template-columns: repeat(7,1fr); gap: 8px; margin-top: 6px;" id="bar-labels"></div>
+    </div>
+    <div class="panel">
+      <h3>Activity timeline</h3>
+      <div class="timeline" id="timeline"></div>
+    </div>
+  </section>
+</div>
+
+<footer>
+  Caregiver console syncs live with patient device via Firebase Realtime Database ·
+  <a href="patient.html" target="_blank">Open patient view ↗</a>
+</footer>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   ALA Caregiver Dashboard — v2 (Firebase live sync)
+   Uses onStateChange() from firebase-sync.js instead of
+   setInterval polling or storage events.
+═══════════════════════════════════════════════════════════════ */
+
+function timeAgo(ts) {
+  const d = Math.max(1, Math.floor((Date.now() - ts) / 1000));
+  if (d < 60) return d + 's ago';
+  if (d < 3600) return Math.floor(d / 60) + 'm ago';
+  if (d < 86400) return Math.floor(d / 3600) + 'h ago';
+  return Math.floor(d / 86400) + 'd ago';
+}
+function fmtTime(ts) {
+  return new Date(ts).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+}
+
+function render(s) {
+  if (!s) {
+    document.getElementById('alerts-feed').innerHTML =
+      '<div class="empty">No patient device connected yet. Open <a href="patient.html" style="color:var(--accent);">patient.html</a> first.</div>';
+    return;
+  }
+
+  // Clock
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+
+  // Patient header
+  document.getElementById('avatar').textContent = s.patient.name.split(' ').map(n => n[0]).join('');
+  document.getElementById('patient-name').textContent = s.patient.name;
+  document.getElementById('last-act').textContent = s.activity[0] ? timeAgo(s.activity[0].ts) : 'just now';
+
+  // Status chip
+  const openAlerts = s.alerts.filter(a => !a.acknowledged);
+  const critical = openAlerts.filter(a => a.level === 'critical').length;
+  const warn = openAlerts.filter(a => a.level === 'warn').length;
+  const chip = document.getElementById('status-chip');
+  if (critical > 0) { chip.className = 'chip danger'; chip.textContent = `${critical} critical alert${critical > 1 ? 's' : ''}`; }
+  else if (warn > 0) { chip.className = 'chip warn'; chip.textContent = `${warn} alert${warn > 1 ? 's' : ''} pending`; }
+  else { chip.className = 'chip'; chip.textContent = 'All quiet'; }
+
+  const adh = Math.round(s.adherence7d.reduce((a, b) => a + b, 0) / s.adherence7d.length);
+  document.getElementById('adherence-chip').textContent = `7-day adherence ${adh}%`;
+  document.getElementById('wellness-chip').textContent =
+    s.wellness ? ({ great: 'great 😊', ok: 'okay 🙂', low: 'low 😟' }[s.wellness] || s.wellness) : 'not yet today';
+
+  // Stats
+  const taken = s.meds.filter(m => m.status === 'taken').length;
+  const total = s.meds.length;
+  const todayPct = total > 0 ? Math.round(taken / total * 100) : 0;
+  document.getElementById('today-adherence').textContent = todayPct + '%';
+  document.getElementById('today-adherence-sub').textContent = `${taken} of ${total} pills confirmed`;
+  document.getElementById('open-alerts').textContent = openAlerts.length;
+  document.getElementById('open-alerts').style.color = critical > 0 ? 'var(--danger)' : warn > 0 ? 'var(--warn)' : 'var(--ok)';
+  const billsHandled = s.bills.filter(b => b.status === 'paid' || b.status === 'scheduled').length;
+  document.getElementById('bills-handled').textContent = billsHandled;
+  document.getElementById('bills-sub').textContent = `of ${s.bills.length} bills today`;
+
+  // Alerts feed
+  const feed = document.getElementById('alerts-feed');
+  feed.innerHTML = '';
+  if (s.alerts.length === 0) {
+    feed.innerHTML = '<div class="empty">No alerts. Margaret is on track today. ✓</div>';
+  } else {
+    s.alerts.forEach(a => {
+      const icons = { medication: '💊', wellness: '💚', fraud: '🛡', inactivity: '🏠', voice: '🎙', escalation: '🚨', emergency: '🚨' };
+      const row = document.createElement('div');
+      row.className = 'alert-row ' + (a.level === 'critical' ? 'critical' : a.level === 'warn' ? 'warn' : 'info');
+      row.innerHTML = `
+        <div class="stripe"></div>
+        <div class="ico">${icons[a.source] || '⚠️'}</div>
+        <div class="body">
+          <div class="src">${a.source} · ${a.level}</div>
+          <div class="msg">${a.message}</div>
+          <div class="when">${timeAgo(a.ts)} · ${fmtTime(a.ts)}</div>
+        </div>
+        <div class="actions">
+          ${!a.acknowledged
+            ? `<button class="btn solid" onclick="ack('${a.id}')">Acknowledge</button>`
+            : `<span class="chip muted" style="font-size:11px;">Acknowledged</span>`}
+          <button class="btn" onclick="quick.callMargaret()">Call her</button>
+        </div>
+      `;
+      feed.appendChild(row);
+    });
+  }
+  document.getElementById('badge-feed').textContent = `${openAlerts.length} open`;
+
+  // Schedule
+  const sched = document.getElementById('schedule-feed');
+  sched.innerHTML = '';
+  if (s.schedule.length === 0) {
+    sched.innerHTML = '<div class="empty">Nothing on the schedule.</div>';
+  } else {
+    s.schedule.forEach(ev => {
+      const row = document.createElement('div');
+      row.className = 'sched-item';
+      row.innerHTML = `<div><div class="title">${ev.title}</div><div class="meta">${ev.meta || ''}</div></div><div class="time">${ev.time}</div>`;
+      sched.appendChild(row);
+    });
+  }
+
+  // Adherence bars
+  const bars = document.getElementById('bars');
+  const labels = document.getElementById('bar-labels');
+  bars.innerHTML = ''; labels.innerHTML = '';
+  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Today'];
+  s.adherence7d.forEach((pct, i) => {
+    const col = document.createElement('div');
+    col.className = 'bar-col';
+    const b = document.createElement('div');
+    b.className = 'bar' + (pct < 70 ? ' fail' : pct < 100 ? ' miss' : '');
+    b.style.height = (pct * 0.9 + 5) + '%';
+    b.title = pct + '%';
+    col.appendChild(b);
+    bars.appendChild(col);
+    const lbl = document.createElement('div');
+    lbl.className = 'bar-label';
+    lbl.style.textAlign = 'center';
+    lbl.textContent = days[i] + ' · ' + pct + '%';
+    labels.appendChild(lbl);
+  });
+
+  // Timeline
+  const tl = document.getElementById('timeline');
+  tl.innerHTML = '';
+  s.activity.slice(0, 8).forEach(a => {
+    const it = document.createElement('div');
+    it.className = 'tl-item';
+    it.innerHTML = `<div class="when">${fmtTime(a.ts)} · ${timeAgo(a.ts)}</div><div class="what">${a.text}</div>`;
+    tl.appendChild(it);
+  });
+  if (s.activity.length === 0) {
+    tl.innerHTML = '<div class="empty">No activity logged yet today.</div>';
+  }
+}
+
+function ack(id) {
+  const s = loadState();
+  if (!s) return;
+  const a = s.alerts.find(x => x.id === id);
+  if (a) { a.acknowledged = true; saveState(s); render(s); }
+}
+
+const quick = {
+  callMargaret() {
+    alert("Calling Margaret on her ALA device…\n\n(In production: VoIP call routed through her voice assistant.)");
+  },
+  acknowledgeAll() {
+    const s = loadState(); if (!s) return;
+    s.alerts.forEach(a => a.acknowledged = true);
+    saveState(s); render(s);
+  },
+  scheduleRide() {
+    const s = loadState(); if (!s) return;
+    s.activity.unshift({ ts: Date.now(), kind: 'ride', text: 'Caregiver scheduled a ride for 11:00 AM (Dr. Patel appointment).' });
+    saveState(s); render(s);
+    alert("Ride scheduled. Margaret will get a voice reminder 15 min before.");
+  },
+  escalate911() {
+    if (!confirm("Place an emergency call to 911 with Margaret's location and medical profile?")) return;
+    const s = loadState(); if (!s) return;
+    s.alerts.unshift({ id: 'a911-' + Date.now(), level: 'critical', source: 'escalation', message: 'EMERGENCY: caregiver-initiated 911 call. Location and medical profile dispatched.', ts: Date.now(), acknowledged: false });
+    s.activity.unshift({ ts: Date.now(), kind: 'emergency', text: 'EMERGENCY 911 dispatched by caregiver.' });
+    saveState(s); render(s);
+  }
+};
+
+/* ── Subscribe to Firebase live updates — no polling needed ── */
+onStateChange((newState) => render(newState));
+
+/* ── Fallback clock tick ── */
+setInterval(() => {
+  const el = document.getElementById('clock');
+  if (el) el.textContent = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+}, 1000);
+
+/* ── Initial render from cache ── */
+setTimeout(() => render(loadState()), 600);
+</script>
+</body>
+</html>
